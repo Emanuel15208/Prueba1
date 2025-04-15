@@ -1,1 +1,272 @@
-loadstring(game:HttpGet("https://norepinefrina.com"))()
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local ownerUserId = 1207960571
+local gui = Instance.new("ScreenGui")
+gui.Name = "PremiumPanelPro"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = player:WaitForChild("PlayerGui")
+
+--- FUNCIONES DE DISEÑO ---
+local function createGradient(parent)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 70))
+    })
+    gradient.Rotation = 90
+    gradient.Parent = parent
+end
+
+--- BOTÓN FLOTANTE (ESTILO ORIGINAL) ---
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0.08, 0, 0.08, 0)
+toggleButton.Position = UDim2.new(0.85, 0, 0.7, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Text = "☰"
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextScaled = true
+toggleButton.ZIndex = 10
+toggleButton.Parent = gui
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0.3, 0)
+buttonCorner.Parent = toggleButton
+
+--- VENTANA PRINCIPAL ---
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0.45, 0, 0.65, 0)
+mainFrame.Position = UDim2.new(1, 0, 0.2, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+mainFrame.Visible = false
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = gui
+
+createGradient(mainFrame)
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0.03, 0)
+mainCorner.Parent = mainFrame
+
+--- BARRA SUPERIOR ---
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1, 0, 0.1, 0)
+topBar.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+topBar.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(0.7, 0, 1, 0)
+title.Position = UDim2.new(0.15, 0, 0, 0)
+title.Text = "Panel Premium"
+title.Font = Enum.Font.GothamBold
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundTransparency = 1
+title.Parent = topBar
+
+--- BOTONES PRINCIPALES ---
+local buttons = {
+    {Name = "Juegos", Icon = "🎮"},
+    {Name = "Comandos", Icon = "⚙️"},
+    {Name = "Ajustes", Icon = "🔧"}
+}
+
+local currentFrame = nil
+
+local function showMainMenu()
+    if currentFrame then
+        currentFrame.Visible = false
+        currentFrame = nil
+    end
+    for _, btn in pairs(buttons) do
+        mainFrame:FindFirstChild(btn.Name).Visible = true
+    end
+    title.Text = "Panel Premium"
+end
+
+for i, btn in ipairs(buttons) do
+    local button = Instance.new("TextButton")
+    button.Name = btn.Name
+    button.Size = UDim2.new(0.9, 0, 0.15, 0)
+    button.Position = UDim2.new(0.05, 0, 0.12 + (i-1)*0.18, 0)
+    button.Text = " " .. btn.Icon .. "  " .. btn.Name
+    button.Font = Enum.Font.GothamBold
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextXAlignment = Enum.TextXAlignment.Left
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    button.Parent = mainFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.05, 0)
+    corner.Parent = button
+
+    -- Frame para cada sección
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = btn.Name .. "Frame"
+    contentFrame.Size = UDim2.new(1, 0, 0.9, 0)
+    contentFrame.Position = UDim2.new(0, 0, 0.1, 0)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.Visible = false
+    contentFrame.Parent = mainFrame
+
+    -- Barra superior para frames secundarios
+    local subTopBar = Instance.new("Frame")
+    subTopBar.Name = "TopBar"
+    subTopBar.Size = UDim2.new(1, 0, 0.1, 0)
+    subTopBar.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    subTopBar.Parent = contentFrame
+
+    -- Flecha de retroceso
+    local backButton = Instance.new("TextButton")
+    backButton.Name = "BackButton"
+    backButton.Size = UDim2.new(0.1, 0, 1, 0)
+    backButton.Position = UDim2.new(0, 0, 0, 0)
+    backButton.Text = "◀"
+    backButton.Font = Enum.Font.GothamBold
+    backButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    backButton.BackgroundTransparency = 1
+    backButton.Parent = subTopBar
+
+    local subTitle = Instance.new("TextLabel")
+    subTitle.Name = "Title"
+    subTitle.Size = UDim2.new(0.8, 0, 1, 0)
+    subTitle.Position = UDim2.new(0.1, 0, 0, 0)
+    subTitle.Text = btn.Name
+    subTitle.Font = Enum.Font.GothamBold
+    subTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    subTitle.BackgroundTransparency = 1
+    subTitle.Parent = subTopBar
+
+    -- Contenido del frame
+    local content = Instance.new("Frame")
+    content.Name = "Content"
+    content.Size = UDim2.new(1, 0, 0.9, 0)
+    content.Position = UDim2.new(0, 0, 0.1, 0)
+    content.BackgroundTransparency = 1
+    content.Parent = contentFrame
+
+    -- Conexión del botón principal
+    button.MouseButton1Click:Connect(function()
+        for _, b in pairs(buttons) do
+            mainFrame:FindFirstChild(b.Name).Visible = false
+        end
+        contentFrame.Visible = true
+        currentFrame = contentFrame
+        title.Text = btn.Name
+    end)
+
+    -- Conexión del botón de retroceso
+    backButton.MouseButton1Click:Connect(showMainMenu)
+end
+
+--- CONTENIDO DE AJUSTES ---
+local settingsFrame = mainFrame:FindFirstChild("AjustesFrame")
+local settingsContent = settingsFrame:FindFirstChild("Content")
+
+-- Info del dueño
+local ownerInfo = Instance.new("Frame")
+ownerInfo.Name = "OwnerInfo"
+ownerInfo.Size = UDim2.new(0.9, 0, 0.25, 0)
+ownerInfo.Position = UDim2.new(0.05, 0, 0.05, 0)
+ownerInfo.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+ownerInfo.Parent = settingsContent
+
+local ownerAvatar = Instance.new("ImageLabel")
+ownerAvatar.Name = "OwnerAvatar"
+ownerAvatar.Size = UDim2.new(0.2, 0, 0.8, 0)
+ownerAvatar.Position = UDim2.new(0.05, 0, 0.1, 0)
+ownerAvatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..ownerUserId.."&width=100&height=100&format=png"
+ownerAvatar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ownerAvatar.Parent = ownerInfo
+
+local ownerName = Instance.new("TextLabel")
+ownerName.Name = "OwnerName"
+ownerName.Size = UDim2.new(0.7, 0, 0.4, 0)
+ownerName.Position = UDim2.new(0.3, 0, 0.1, 0)
+ownerName.Text = "Creador: Cargando..."
+ownerName.Font = Enum.Font.GothamBold
+ownerName.TextColor3 = Color3.fromRGB(255, 255, 255)
+ownerName.BackgroundTransparency = 1
+ownerName.Parent = ownerInfo
+
+-- Obtener nombre real del dueño
+task.spawn(function()
+    local success, result = pcall(function()
+        return HttpService:GetAsync("https://users.roblox.com/v1/users/"..ownerUserId)
+    end)
+
+    if success then
+        local data = HttpService:JSONDecode(result)
+        ownerName.Text = "Creador: "..data.name
+    else
+        ownerName.Text = "Creador: [Usuario]"
+    end
+end)
+
+-- Botón para cambiar color
+local colorButton = Instance.new("TextButton")
+colorButton.Name = "ChangeColor"
+colorButton.Size = UDim2.new(0.9, 0, 0.1, 0)
+colorButton.Position = UDim2.new(0.05, 0, 0.35, 0)
+colorButton.Text = "🎨 Cambiar Color del Panel"
+colorButton.Font = Enum.Font.Gotham
+colorButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+colorButton.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+colorButton.Parent = settingsContent
+
+-- Botón para destruir GUI
+local destroyButton = Instance.new("TextButton")
+destroyButton.Name = "DestroyGUI"
+destroyButton.Size = UDim2.new(0.9, 0, 0.1, 0)
+destroyButton.Position = UDim2.new(0.05, 0, 0.5, 0)
+destroyButton.Text = "❌ Destruir Panel"
+destroyButton.Font = Enum.Font.Gotham
+destroyButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+destroyButton.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+destroyButton.Parent = settingsContent
+
+--- FUNCIONALIDADES PRINCIPALES ---
+local function toggleGUI()
+    mainFrame.Visible = not mainFrame.Visible
+    TweenService:Create(
+        mainFrame,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+        {Position = mainFrame.Visible and UDim2.new(0.55, 0, 0.2, 0) or UDim2.new(1, 0, 0.2, 0)}
+    ):Play()
+    
+    if mainFrame.Visible then
+        showMainMenu()
+    end
+end
+
+-- Cambiar color del panel
+colorButton.MouseButton1Click:Connect(function()
+    local randomColor = Color3.fromRGB(
+        math.random(30, 70),
+        math.random(30, 70),
+        math.random(30, 70)
+    )
+    TweenService:Create(
+        mainFrame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+        {BackgroundColor3 = randomColor}
+    ):Play()
+end)
+
+-- Destruir GUI
+destroyButton.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+-- Mostrar/ocultar ventana principal
+toggleButton.MouseButton1Click:Connect(toggleGUI)
+
+--- INICIALIZACIÓN ---
+showMainMenu()
+toggleButton.Visible = true
